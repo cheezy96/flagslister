@@ -143,16 +143,14 @@
         
 
         function doSearch(){
-
             let searchCountry = flags.find(flag => flag.common_name == searchInput.value);
-
+            
             if(!searchCountry){
                 alert("Country not found");
                 return;
             }
             
             currentFlag = flags.indexOf(searchCountry);
-
             refresh();
         }
 
