@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *, *::before, *::after{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        img{
+            width: 100%;
+        }
+
+        button, input{
+            padding: 1em;
+        }
+        body{
+            font-family: system-ui;
+        }
+
+        main{
+            min-height: 100vh;
+            gap: 1em;
+            display: grid;
+            place-content: center;
+            grid-template-areas: 
+            ". search ."
+            "prev main next"
+            ". footer ."
+            ;
+        }
+
+        .imageContainer{
+            grid-area: main;
+            
+            img{
+                max-width: 300px;
+            }
+        }
+        .nextBtn{
+            grid-area: next;
+        }
+        .prevBtn{
+            grid-area: prev;
+        }
+        .labelContainer{
+            grid-area: footer;
+        }
+        .searchContainer{
+            grid-area: search;
+            
+            form{
+                display: flex;
+                width: 100%;
+                #searchInput{
+                    width: 100% !important;
+                }
+            }
+            /* justify-content: center; */
+        }
+
+        div{
+            /* display: flex; */
+            /* align-items: center; */
+            margin-block: auto;
+
+        }
+
+
+    </style>
+</head>
+<body>
+    <main>
+        <div class="searchContainer">
+            <form method="dialog" onsubmit="doSearch()">
+                <input list="flagsList" id="searchInput" type="text" placeholder="Enter place name">
+                <input type="submit" value="Search">
+            </form>
+            <datalist id="flagsList">
+                <!-- <option value="Chocolate"></option>
+                <option value="Coconut"></option>
+                <option value="Mint"></option>
+                <option value="Strawberry"></option>
+                <option value="Vanilla"></option> -->
+            </datalist>
+        </div>
+        <div class="imageContainer">
+            <img id="image" src="images/cn.png" alt="flag ni">
+        </div>
+        <div class="nextBtn">
+            <button onclick="buttonHandler('next')">Next</button>
+        </div>
+        <div class="prevBtn">
+            <button onclick="buttonHandler()">Previous</button>
+        </div>
+        <div class="labelContainer">
+            <h1 id="title"></h1>
+            <h3 id="subTitle"></h3>
+        </div>
+    </main>
+    <script>
+        let flags;
+        let currentFlag = 0;
+
+        async function refresh(){
+
+            let response = await fetch("http://localhost/flagslister/api/db.php");
+            flags = await response.json();
+            console.log(flags);
+
+            // pang identify sa currentflag and ug asa nka dapit
+            let flag = flags.at(currentFlag); 
+            
+            //pang display sa mga images based sa kung asa na flag
+            image.src = `./images/${flag.images}.png`; 
+
+            title.innerHTML = flag.common_name; //pang change sa Title
+
+             //pang change sa subtitle
+            subTitle.innerHTML = flag.code_name.toUpperCase();
+
+            // DATALIST FUNCTIONS BELOW //
+            flagsList.innerHTML = ""; //pang clear finished na search
+
+            for (myflag of flags) {
+                flagsList.innerHTML += `<option value="${myflag.common_name}">`;
+            }
+
+        }  
+
+        function buttonHandler(name) {
+            if (name == "next") {
+                currentFlag = (currentFlag + 1) % flags.length;
+            } else {
+                currentFlag = (currentFlag - 1 + flags.length) % flags.length;
+            }
+            refresh();
+        }
+        
+
+        function doSearch(){
+
+            let searchCountry = flags.find(flag => flag.common_name == searchInput.value);
+
+            if(!searchCountry){
+                alert("Country not found");
+                return;
+            }
+            
+            currentFlag = flags.indexOf(searchCountry);
+
+            refresh();
+        }
+
+
+        refresh();
+    </script>
+</body>
+</html>
