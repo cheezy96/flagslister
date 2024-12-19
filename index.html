@@ -3,157 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>FLAGLISTER 2</title>
     <style>
         *, *::before, *::after{
+            box-sizing: border-box;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+        }
+        
+        html{
+            color-scheme: dark light;
         }
 
-        img{
-            width: 100%;
-        }
-
-        button, input{
-            padding: 1em;
-        }
         body{
             font-family: system-ui;
         }
 
+        button,input{
+            padding: 1em;
+            font-size: 1rem;
+        }
+
+        img{
+            max-width: 400px;
+            width: 100%;
+        }
+
         main{
-            min-height: 100vh;
-            gap: 1em;
             display: grid;
             place-content: center;
+            min-height: 100vh;
+            gap: 10px;
+            
             grid-template-areas: 
             ". search ."
-            "prev main next"
-            ". footer ."
+            "prev image next"
+            ". title ."
             ;
-        }
 
-        .imageContainer{
-            grid-area: main;
-            
-            img{
-                max-width: 300px;
+            > div{
+                margin-block: auto;
             }
         }
-        .nextBtn{
-            grid-area: next;
-        }
-        .prevBtn{
-            grid-area: prev;
-        }
-        .labelContainer{
-            grid-area: footer;
-        }
-        .searchContainer{
-            grid-area: search;
-            
-            form{
-                display: flex;
-                width: 100%;
-                #searchInput{
-                    width: 100% !important;
-                }
-            }
-            /* justify-content: center; */
-        }
 
-        div{
-            /* display: flex; */
-            /* align-items: center; */
-            margin-block: auto;
-
-        }
-
-
+      
+        
     </style>
 </head>
 <body>
     <main>
-        <div class="searchContainer">
-            <form method="dialog" onsubmit="doSearch()">
-                <input list="flagsList" id="searchInput" type="text" placeholder="Enter place name">
-                <input type="submit" value="Search">
+        <div style="grid-area: search;">
+            <form method="dialog" onsubmit="doSearch()" style="display: flex; gap: 5px;">
+                <input list="flagList" id="searchInput" type="text" placeholder="Search" style="width: 100%;">
+                <input type="submit">
             </form>
-            <datalist id="flagsList">
-                <!-- <option value="Chocolate"></option>
-                <option value="Coconut"></option>
-                <option value="Mint"></option>
-                <option value="Strawberry"></option>
-                <option value="Vanilla"></option> -->
+            <datalist id="flagList">
             </datalist>
         </div>
-        <div class="imageContainer">
-            <img id="image" src="images/cn.png" alt="flag ni">
+        <div style="grid-area: image;">
+            <img id="image" alt="image">
         </div>
-        <div class="nextBtn">
-            <button onclick="buttonHandler('next')">Next</button>
-        </div>
-        <div class="prevBtn">
+        <div style="grid-area: prev;">
             <button onclick="buttonHandler()">Previous</button>
         </div>
-        <div class="labelContainer">
-            <h1 id="title"></h1>
-            <h3 id="subTitle"></h3>
+        <div style="grid-area: next;">
+            <button onclick="buttonHandler(true)">Next</button>
         </div>
+        <div style="grid-area: title;">
+            <h1 id="title"></h1>
+            <h2 id="subtitle"></h2>
+        </div>
+
     </main>
+
     <script>
         let flags;
         let currentFlag = 0;
 
         async function refresh(){
-
-            let response = await fetch("http://localhost/flagslister/api/db.php");
+            let response = await fetch("http://localhost/flagslister2/api/get-flags.php");
             flags = await response.json();
-            console.log(flags);
-
-            // pang identify sa currentflag and ug asa nka dapit
-            let flag = flags.at(currentFlag); 
+            // console.log(flags);
             
-            //pang display sa mga images based sa kung asa na flag
-            image.src = `./images/${flag.images}.png`; 
+            let flag = flags.at(currentFlag);
+            console.log(flag);
 
-            title.innerHTML = flag.common_name; //pang change sa Title
-
-             //pang change sa subtitle
-            subTitle.innerHTML = flag.code_name.toUpperCase();
-
-            // DATALIST FUNCTIONS BELOW //
-            flagsList.innerHTML = ""; //pang clear finished na search
-
-            for (myflag of flags) {
-                flagsList.innerHTML += `<option value="${myflag.common_name}">`;
+            image.src = `./images/${flag.code_name}.png`;
+            title.innerHTML = flag.common_name;
+            subtitle.innerHTML = flag.code_name.toUpperCase();
+            for (const flag of flags) {
+                flagList.innerHTML += `
+                    <option value="${flag.common_name}"></option>
+                `;
             }
+            
+        }
 
-        }  
-
-        function buttonHandler(name) {
-            if (name == "next") {
+        function buttonHandler(b){
+            if(b == true){
                 currentFlag = (currentFlag + 1) % flags.length;
-            } else {
+                // alert('true');
+            }else{
+                // alert('false');
                 currentFlag = (currentFlag - 1 + flags.length) % flags.length;
             }
             refresh();
         }
-        
 
         function doSearch(){
-            let searchCountry = flags.find(flag => flag.common_name == searchInput.value);
-            
-            if(!searchCountry){
-                alert("Country not found");
+            let search = flags.find(flag => flag.common_name.toLowerCase() == searchInput.value.toLowerCase());
+            console.log(search);
+            if(!search){
+                alert('Not found!');
                 return;
             }
-            
-            currentFlag = flags.indexOf(searchCountry);
+            currentFlag = flags.indexOf(search);
             refresh();
         }
-
 
         refresh();
     </script>
